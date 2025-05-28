@@ -6,9 +6,28 @@ plugins {
     id 'maven'
     id 'signing'
     id 'jacoco'
+    id 'maven-publish'
 }
 
-group = 'ch.obermuhlner'
+publishing {
+    repositories {
+        maven {
+            name = "mymavenrepo"
+            url = "https://mymavenrepo.com/repo/lMX1KgJf0wS9ayeYirfY/"
+            credentials {
+                username = System.getenv("MAVEN_USERNAME")
+                password = System.getenv("MAVEN_PASSWORD")
+            }
+        }
+    }
+    publications {
+        register("jar", MavenPublication) {
+            from(components["java"])
+        }
+    }
+}
+
+group = 'ch.obermuhlner.fork'
 version = '2.3.2'
 archivesBaseName = 'big-math'
 
@@ -86,58 +105,3 @@ artifacts {
     archives sourcesJar
     archives javadocJar
 }
-
-signing {
-    required {
-        gradle.taskGraph.hasTask("uploadArchives")
-    }
-
-    sign configurations.archives
-}
-
-uploadArchives {
-	repositories {
-	    mavenDeployer {
-	        beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-	
-	        repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-	            authentication(userName: ossrhUsername, password: ossrhPassword)
-	        }
-	
-	        snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-	            authentication(userName: ossrhUsername, password: ossrhPassword)
-	        }
-	
-	        pom.project {
-	            name 'Big Math'
-	            packaging 'jar'
-	            // optionally artifactId can be defined here 
-	            description 'Math functions for BigDecimal.'
-	            url 'https://github.com/eobermuhlner/big-math'
-	
-	            scm {
-	                connection 'scm:git:git://github.com/big-math.git'
-	                developerConnection 'scm:ssh://github.com:eobermuhlner/big-math.git'
-	                url 'https://github.com/eobermuhlner/big-math/'
-	            }
-	
-	            licenses {
-	                license {
-	                    name 'MIT License'
-	                    url 'https://raw.githubusercontent.com/eobermuhlner/big-math/master/LICENSE.txt'
-	                }
-	            }
-	
-	            developers {
-	                developer {
-	                    id 'eobermuhlner'
-	                    name 'Eric Obermuhlner'
-	                    email 'eobermuhlner@gmail.com'
-	                }
-	            }
-	        }
-	    }
-	}
-}
-
-// See http://central.sonatype.org/pages/gradle.html
