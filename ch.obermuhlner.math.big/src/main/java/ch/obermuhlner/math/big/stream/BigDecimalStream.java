@@ -11,6 +11,8 @@ import java.util.stream.StreamSupport;
 
 import ch.obermuhlner.math.big.BigDecimalMath;
 
+import static ch.obermuhlner.math.big.BigDecimalMath.checkInterrupted;
+
 /**
  * Provides constructor methods for streams of {@link BigDecimal} elements. 
  */
@@ -194,6 +196,7 @@ public class BigDecimalStream {
 		@Override
 		public void forEachRemaining(Consumer<? super BigDecimal> action) {
 			while (count > 0) {
+				checkInterrupted();
 				action.accept(value);
 				value = value.add(step, mathContext);
 				count--;

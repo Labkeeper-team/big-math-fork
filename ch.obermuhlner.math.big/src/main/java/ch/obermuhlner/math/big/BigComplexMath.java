@@ -1,6 +1,7 @@
 package ch.obermuhlner.math.big;
 
 import static ch.obermuhlner.math.big.BigComplex.I;
+import static ch.obermuhlner.math.big.BigDecimalMath.checkInterrupted;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -112,6 +113,7 @@ public class BigComplexMath {
 		boolean negative = false;
 		BigComplex factor = BigComplex.valueOf(constants.get(0));
 		for (int k = 1; k < a; k++) {
+			checkInterrupted();
 			BigDecimal bigK = BigDecimal.valueOf(k);
 			factor = factor.add(BigComplex.valueOf(constants.get(k)).divide(x.add(bigK), mc), mc);
 			negative = !negative;
@@ -329,6 +331,7 @@ public class BigComplexMath {
 		
 		BigComplex result = BigComplex.ONE;
 		while (y > 0) {
+			checkInterrupted();
 			if ((y & 1) == 1) {
 				// odd exponent -> multiply result with x
 				result = result.multiply(x, mc);

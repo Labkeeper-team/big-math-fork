@@ -7,6 +7,7 @@ import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.List;
 
+import static ch.obermuhlner.math.big.BigDecimalMath.checkInterrupted;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -55,6 +56,7 @@ public abstract class SeriesCalculator {
 		BigDecimal step;
 		int i = 0;
 		do {
+			checkInterrupted();
 			BigRational factor;
 			BigDecimal xToThePower;
 
@@ -100,6 +102,7 @@ public abstract class SeriesCalculator {
 	 */
 	protected synchronized BigRational getFactor(int index) {
 		while (factors.size() <= index) {
+			checkInterrupted();
 			BigRational factor = getCurrentFactor();
 			addFactor(factor);
 			calculateNextFactor();

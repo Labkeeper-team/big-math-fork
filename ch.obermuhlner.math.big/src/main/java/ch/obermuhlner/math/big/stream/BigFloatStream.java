@@ -10,6 +10,8 @@ import java.util.stream.StreamSupport;
 import ch.obermuhlner.math.big.BigFloat;
 import ch.obermuhlner.math.big.BigFloat.Context;
 
+import static ch.obermuhlner.math.big.BigDecimalMath.checkInterrupted;
+
 /**
  * Provides constructor methods for streams of {@link BigFloat} elements. 
  */
@@ -189,6 +191,7 @@ public class BigFloatStream {
 		@Override
 		public void forEachRemaining(Consumer<? super BigFloat> action) {
 			while (count > 0) {
+				checkInterrupted();
 				action.accept(value);
 				value = value.add(step);
 				count--;

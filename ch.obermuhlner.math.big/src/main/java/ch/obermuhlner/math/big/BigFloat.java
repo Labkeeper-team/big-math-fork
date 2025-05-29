@@ -6,6 +6,8 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.Objects;
 
+import static ch.obermuhlner.math.big.BigDecimalMath.checkInterrupted;
+
 /**
  * A wrapper around {@link BigDecimal} which simplifies the consistent usage of the {@link MathContext}
  * and provides a simpler API for calculations.
@@ -1529,6 +1531,7 @@ public class BigFloat implements Comparable<BigFloat>, Serializable {
 		BigFloat result = value1;
 
 		for (BigFloat other : values) {
+			checkInterrupted();
 			result = max(result, other);
 		}
 
@@ -1559,6 +1562,7 @@ public class BigFloat implements Comparable<BigFloat>, Serializable {
 		BigFloat result = value1;
 
 		for (BigFloat other : values) {
+			checkInterrupted();
 			result = min(result, other);
 		}
 

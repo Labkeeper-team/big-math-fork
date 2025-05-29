@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
+import static ch.obermuhlner.math.big.BigDecimalMath.checkInterrupted;
+
 /**
  * A rational number represented as a quotient of two values.
  * 
@@ -967,6 +969,7 @@ public class BigRational extends Number implements Comparable<BigRational>, Seri
 		String[] strings = string.split("/");
 		BigRational result = valueOfSimple(strings[0]);
 		for (int i = 1; i < strings.length; i++) {
+			checkInterrupted();
 			result = result.divide(valueOfSimple(strings[i]));
 		}
 		return result;
@@ -1040,6 +1043,7 @@ public class BigRational extends Number implements Comparable<BigRational>, Seri
 		}
 		BigRational result = values[0];
 		for (int i = 1; i < values.length; i++) {
+			checkInterrupted();
 			result = result.min(values[i]);
 		}
 		return result;
@@ -1058,6 +1062,7 @@ public class BigRational extends Number implements Comparable<BigRational>, Seri
 		}
 		BigRational result = values[0];
 		for (int i = 1; i < values.length; i++) {
+			checkInterrupted();
 			result = result.max(values[i]);
 		}
 		return result;
@@ -1091,6 +1096,7 @@ public class BigRational extends Number implements Comparable<BigRational>, Seri
     		
     		if (bernoulliCache.size() <= index) {
     			for (int i = bernoulliCache.size(); i <= index; i++) {
+					checkInterrupted();
     				BigRational b = calculateBernoulli(i * 2);
 					bernoulliCache.add(b);
 				}
@@ -1105,6 +1111,7 @@ public class BigRational extends Number implements Comparable<BigRational>, Seri
             BigRational jSum = ZERO ;
             BigRational bin = ONE ;
             for(int j=0 ; j <= k ; j++) {
+				checkInterrupted();
                 BigRational jPowN = valueOf(j).pow(n);
                 if (j % 2 == 0) {
                 	jSum = jSum.add(bin.multiply(jPowN)) ;

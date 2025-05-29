@@ -8,6 +8,7 @@ import static java.math.BigDecimal.valueOf;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.util.*;
+import java.util.concurrent.CancellationException;
 
 import ch.obermuhlner.math.big.internal.AsinCalculator;
 import ch.obermuhlner.math.big.internal.CosCalculator;
@@ -55,6 +56,7 @@ public class BigDecimalMath {
 		BigDecimal result = ONE;
 		factorialCache[0] = result;
 		for (int i = 1; i < factorialCache.length; i++) {
+			checkInterrupted();
 			result = result.multiply(valueOf(i));
 			factorialCache[i] = result;
 		}
@@ -65,6 +67,12 @@ public class BigDecimalMath {
 
 	private BigDecimalMath() {
 		// prevent instances
+	}
+
+	public static void checkInterrupted() {
+		if (Thread.currentThread().isInterrupted()) {
+			throw new CancellationException();
+		}
 	}
 
 	/**
@@ -125,6 +133,7 @@ public class BigDecimalMath {
 		int scale = 0;
 
 		for (int i = 0; i < len; i++) {
+			checkInterrupted();
 			char c = chars[i];
 			switch (c) {
 				case '+':
@@ -477,6 +486,7 @@ System.out.println(BigDecimalMath.roundWithTrailingZeroes(new BigDecimal("0.0000
 	 * @throws ArithmeticException if x &lt; 0
 	 */
 	public static BigDecimal factorial(int n) {
+		checkInterrupted();
 		if (n < 0) {
 			throw new ArithmeticException("Illegal factorial(n) for n < 0: n = " + n);
 		}
@@ -493,6 +503,7 @@ System.out.println(BigDecimalMath.roundWithTrailingZeroes(new BigDecimal("0.0000
         long accu = 1;
         BigDecimal result = BigDecimal.ONE;
         while (n1 <= n2) {
+			checkInterrupted();
             if (accu <= limit) {
                 accu *= n1;
             } else {
@@ -505,6 +516,7 @@ System.out.println(BigDecimalMath.roundWithTrailingZeroes(new BigDecimal("0.0000
     }
 
     private static BigDecimal factorialRecursion(final int n1, final int n2) {
+		checkInterrupted();
 		int threshold = n1 > 200 ? 80 : 150;
         if (n2 - n1 < threshold) {
             return factorialLoop(n1, n2);
@@ -555,6 +567,7 @@ System.out.println(BigDecimalMath.roundWithTrailingZeroes(new BigDecimal("0.0000
 		boolean negative = false;
 		BigDecimal factor = constants.get(0);
 		for (int k = 1; k < a; k++) {
+			checkInterrupted();
 			BigDecimal bigK = BigDecimal.valueOf(k);
 			factor = factor.add(constants.get(k).divide(x.add(bigK), mc));
 			negative = !negative;
@@ -578,6 +591,7 @@ System.out.println(BigDecimalMath.roundWithTrailingZeroes(new BigDecimal("0.0000
 
 				boolean negative = false;
 				for (int k = 1; k < a; k++) {
+					checkInterrupted();
 					BigDecimal bigK = BigDecimal.valueOf(k);
 					long deltaAK = (long)a - k;
 					BigDecimal ck = pow(BigDecimal.valueOf(deltaAK), bigK.subtract(ONE_HALF), mc);
@@ -710,6 +724,7 @@ System.out.println(BigDecimalMath.roundWithTrailingZeroes(new BigDecimal("0.0000
 		
 		BigDecimal result = ONE;
 		while (y > 0) {
+			checkInterrupted();
 			if ((y & 1) == 1) {
 				// odd exponent -> multiply result with x
 				result = result.multiply(x, mc);
@@ -751,6 +766,7 @@ System.out.println(BigDecimalMath.roundWithTrailingZeroes(new BigDecimal("0.0000
 
 		BigDecimal result = ONE;
 		while (integerY.signum() > 0) {
+			checkInterrupted();
 			BigDecimal halfY = integerY.divide(TWO, mc);
 
 			if (fractionalPart(halfY).signum() != 0) {
@@ -812,6 +828,7 @@ System.out.println(BigDecimalMath.roundWithTrailingZeroes(new BigDecimal("0.0000
 			}
 
 			do {
+				checkInterrupted();
 				last = result;
 				adaptivePrecision <<= 1;
 				if (adaptivePrecision > maxPrecision) {
@@ -883,6 +900,7 @@ System.out.println(BigDecimalMath.roundWithTrailingZeroes(new BigDecimal("0.0000
 		if (adaptivePrecision < maxPrecision) {
 			BigDecimal step;
 			do {
+				checkInterrupted();
 				adaptivePrecision *= 3;
 				if (adaptivePrecision > maxPrecision) {
 					adaptivePrecision = maxPrecision;
@@ -988,6 +1006,7 @@ System.out.println(BigDecimalMath.roundWithTrailingZeroes(new BigDecimal("0.0000
 		BigDecimal step;
 		
 		do {
+			checkInterrupted();
 			adaptivePrecision *= 3;
 			if (adaptivePrecision > maxPrecision) {
 				adaptivePrecision = maxPrecision;
@@ -1033,6 +1052,7 @@ System.out.println(BigDecimalMath.roundWithTrailingZeroes(new BigDecimal("0.0000
             // do nothing
         } else if (value < 0.1) { // never happens when called by logUsingExponent()
             while (value < 0.6) {
+				checkInterrupted();
                 value *= 2;
                 factorOfTwo--;
 	            powerOfTwo <<= 1;
@@ -1095,7 +1115,8 @@ System.out.println(BigDecimalMath.roundWithTrailingZeroes(new BigDecimal("0.0000
         }
         else {
             while (value > 1.4) { // never happens when called by logUsingExponent()
-                value /= 2;
+				checkInterrupted();
+				value /= 2;
                 factorOfTwo++;
 	            powerOfTwo <<= 1;
             }
@@ -1176,6 +1197,7 @@ System.out.println(BigDecimalMath.roundWithTrailingZeroes(new BigDecimal("0.0000
 		
 		long iterationCount = (mc.getPrecision()+13) / 14;
 		for (long k = 1; k <= iterationCount; k++) {
+			checkInterrupted();
 			BigDecimal valueK = BigDecimal.valueOf(k);
 			dividendTerm1 += -6;
 			dividendTerm2 += 2;
