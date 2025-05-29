@@ -29,6 +29,7 @@ public class BigDecimalMath {
 
 	private static final BigDecimal ONE_HUNDRED_EIGHTY = valueOf(180);
 
+	private static final BigDecimal DOUBLE_MIN_VALUE = BigDecimal.valueOf(Double.MIN_VALUE);
 	private static final BigDecimal DOUBLE_MAX_VALUE = BigDecimal.valueOf(Double.MAX_VALUE);
 
 	private static volatile BigDecimal log2Cache;
@@ -308,6 +309,12 @@ public class BigDecimalMath {
 			return false;
 		}
 		if (value.compareTo(DOUBLE_MAX_VALUE.negate()) < 0) {
+			return false;
+		}
+		if (value.compareTo(ZERO) > 0 && value.compareTo(DOUBLE_MIN_VALUE) < 0) {
+			return false;
+		}
+		if (value.compareTo(ZERO) < 0 && value.compareTo(DOUBLE_MIN_VALUE.negate()) > 0) {
 			return false;
 		}
 
@@ -807,8 +814,9 @@ System.out.println(BigDecimalMath.roundWithTrailingZeroes(new BigDecimal("0.0000
 			throw new ArithmeticException("Illegal sqrt(x) for x < 0: x = " + x);
 		}
 
+		int scale = x.scale();
 		int maxPrecision = mathContext.getPrecision() + 6;
-		BigDecimal acceptableError = ONE.movePointLeft(mathContext.getPrecision() + 1);
+		BigDecimal acceptableError = ONE.movePointLeft(Math.max(Math.abs(scale), mathContext.getPrecision()) + 1);
 
 		BigDecimal result;
 		int adaptivePrecision;

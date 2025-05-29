@@ -221,10 +221,10 @@ public class BigDecimalMathTest {
 		assertEquals(true, BigDecimalMath.isDoubleValue(BigDecimal.valueOf(0)));
 		assertEquals(true, BigDecimalMath.isDoubleValue(BigDecimal.valueOf(-55)));
 		assertEquals(true, BigDecimalMath.isDoubleValue(BigDecimal.valueOf(33)));
-		assertEquals(true, BigDecimalMath.isDoubleValue(new BigDecimal("1E-325")));
-		assertEquals(true, BigDecimalMath.isDoubleValue(new BigDecimal("-1E-325")));
-		assertEquals(true, BigDecimalMath.isDoubleValue(new BigDecimal("1E-325")));
-		assertEquals(true, BigDecimalMath.isDoubleValue(new BigDecimal("-1E-325")));
+		assertEquals(false, BigDecimalMath.isDoubleValue(new BigDecimal("1E-325")));
+		assertEquals(false, BigDecimalMath.isDoubleValue(new BigDecimal("-1E-325")));
+		assertEquals(false, BigDecimalMath.isDoubleValue(new BigDecimal("1E-325")));
+		assertEquals(false, BigDecimalMath.isDoubleValue(new BigDecimal("-1E-325")));
 
 		assertEquals(false, BigDecimalMath.isDoubleValue(BigDecimal.valueOf(Double.MAX_VALUE).add(BigDecimal.valueOf(1))));
 		assertEquals(false, BigDecimalMath.isDoubleValue(BigDecimal.valueOf(-Double.MAX_VALUE).subtract(BigDecimal.valueOf(1))));
@@ -781,6 +781,33 @@ public class BigDecimalMathTest {
 					toCheck(Math.sqrt(value)),
 					BigDecimalMath.sqrt(BigDecimal.valueOf(value), MC),
                     MC_CHECK_DOUBLE);
+		}
+	}
+
+	@Test
+	public void testSqrtSimpleBig() {
+		final BigDecimal value = BigDecimal.ONE.movePointRight(-2000);
+		final BigDecimal expectedRootValue = BigDecimal.ONE.movePointRight(-1000);
+		assertBigDecimal(
+					"sqrt(" + value + ")",
+					expectedRootValue,
+					BigDecimalMath.sqrt(value, MC),
+					MC_CHECK_DOUBLE);
+	}
+
+	@Test
+	public void testSqrtRandomBig() {
+		final int count = 100;
+		final int length = 1000;
+		for (int i = 0; i < count; i++) {
+			StringBuilder numberString = new StringBuilder();
+			for (int j = 0; j < length; j++) {
+				char digit = (char) (Math.random() * 10 + '0');
+				numberString.append(digit);
+			}
+			BigDecimal number = new BigDecimal(numberString.toString()).movePointLeft(2000);
+			BigDecimal sqrt = BigDecimalMath.sqrt(number, MC);
+			assertBigDecimal(number, sqrt.multiply(sqrt), MC_CHECK_DOUBLE);
 		}
 	}
 
