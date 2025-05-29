@@ -28,7 +28,7 @@ publishing {
 }
 
 group = 'ch.obermuhlner.fork'
-version = '2.3.2'
+version = '2.3.2-fork-1.0'
 archivesBaseName = 'big-math'
 
 ext {
