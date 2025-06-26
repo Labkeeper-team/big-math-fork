@@ -807,32 +807,40 @@ System.out.println(BigDecimalMath.roundWithTrailingZeroes(new BigDecimal("0.0000
 	 */
 	public static BigDecimal sqrt(BigDecimal x, MathContext mathContext) {
 		checkMathContext(mathContext);
-		switch (x.signum()) {
+		BigDecimal xRounded = x.round(mathContext);
+		int scale = xRounded.scale();
+		int resultScale = xRounded.scale() / 2;
+		BigDecimal xUnscaled = new BigDecimal(xRounded.unscaledValue());
+		if (scale % 2 != 0) {
+			xUnscaled = xUnscaled.movePointLeft(scale < 0 ? -1 : 1);
+		}
+		switch (xUnscaled.signum()) {
 		case 0:
 			return ZERO;
 		case -1:
-			throw new ArithmeticException("Illegal sqrt(x) for x < 0: x = " + x);
+			throw new ArithmeticException("Illegal sqrt(xUnscaled) for xUnscaled < 0: xUnscaled = " + xUnscaled);
 		}
 
-		int scale = x.scale();
 		int maxPrecision = mathContext.getPrecision() + 6;
-		BigDecimal acceptableError = ONE.movePointLeft(Math.max(Math.abs(scale), mathContext.getPrecision()) + 1);
+		BigDecimal acceptableError = ONE.movePointLeft(mathContext.getPrecision() + 1);
 
 		BigDecimal result;
 		int adaptivePrecision;
-		if (isDoubleValue(x)) {
-			result = BigDecimal.valueOf(Math.sqrt(x.doubleValue()));
+		if (isDoubleValue(xUnscaled)) {
+			result = BigDecimal.valueOf(Math.sqrt(xUnscaled.doubleValue()));
 			adaptivePrecision = EXPECTED_INITIAL_PRECISION;
 		} else {
-			result = x.multiply(ONE_HALF, mathContext);
+			result = xUnscaled.multiply(ONE_HALF, mathContext);
 			adaptivePrecision = 1;
 		}
-		
+
 		BigDecimal last;
 
 		if (adaptivePrecision < maxPrecision) {
-			if (result.multiply(result).compareTo(x) == 0) {
-				return round(result, mathContext); // early exit if x is a square number
+			if (result.multiply(result).compareTo(xUnscaled) == 0) {
+				return round(result, mathContext)
+						.movePointLeft(resultScale)
+						.round(mathContext); // early exit if xUnscaled is a square number
 			}
 
 			do {
@@ -843,12 +851,12 @@ System.out.println(BigDecimalMath.roundWithTrailingZeroes(new BigDecimal("0.0000
 					adaptivePrecision = maxPrecision;
 				}
 				MathContext mc = new MathContext(adaptivePrecision, mathContext.getRoundingMode());
-				result = x.divide(result, mc).add(last).multiply(ONE_HALF, mc);
+				result = xUnscaled.divide(result, mc).add(last).multiply(ONE_HALF, mc);
 			}
 			while (adaptivePrecision < maxPrecision || result.subtract(last).abs().compareTo(acceptableError) > 0);
 		}
 
-		return round(result, mathContext);
+		return round(result, mathContext).movePointLeft(resultScale).round(mathContext);
 	}
 
 	/**

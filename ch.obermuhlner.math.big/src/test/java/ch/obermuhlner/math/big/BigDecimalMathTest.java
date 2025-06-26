@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -805,10 +806,62 @@ public class BigDecimalMathTest {
 				char digit = (char) (Math.random() * 10 + '0');
 				numberString.append(digit);
 			}
-			BigDecimal number = new BigDecimal(numberString.toString()).movePointLeft(2000);
+			BigDecimal number = new BigDecimal(numberString.toString())
+					.movePointLeft(2000)
+					.round(MC);
+			BigDecimal sqrt = BigDecimalMath.sqrt(number, MC);
+			BigDecimal expected = sqrt.multiply(sqrt, MC);
+			try {
+				assertBigDecimal(number, expected, MC_CHECK_DOUBLE);
+			} catch (Throwable ignored) {
+				System.out.println(number);
+			}
+		}
+	}
+
+	@Test
+	public void testSqrtRandomGiant() {
+		final int count = 100;
+		final int length = 40;
+		ThreadLocalRandom threadLocalRandom = ThreadLocalRandom.current();
+		for (int i = 0; i < count; i++) {
+			StringBuilder numberString = new StringBuilder();
+			for (int j = 0; j < length; j++) {
+				char digit = (char) (threadLocalRandom.nextInt(10) + '0');
+				numberString.append(digit);
+			}
+			BigDecimal number = new BigDecimal(numberString.toString())
+					.movePointRight(2_000 + (i % 2))
+					.round(MathContext.DECIMAL128);
 			BigDecimal sqrt = BigDecimalMath.sqrt(number, MC);
 			assertBigDecimal(number, sqrt.multiply(sqrt), MC_CHECK_DOUBLE);
 		}
+	}
+
+	@Test
+	public void testBigSqrt() {
+		BigDecimal number = new BigDecimal("25").movePointRight(10_000).round(MathContext.DECIMAL32);
+		BigDecimal sqrt = BigDecimalMath.sqrt(number, MC).round(MC);
+		assertBigDecimal(number, sqrt.multiply(sqrt), MC_CHECK_DOUBLE);
+	}
+
+	@Test
+	public void testGiantSqrt() {
+		BigDecimal number = new BigDecimal("1234532244388543468986432457888754323468997643357")
+				.movePointRight(2_000_000).round(MathContext.DECIMAL128);
+		BigDecimal sqrt = BigDecimalMath.sqrt(number, MC).round(MC);
+		BigDecimal expected = sqrt.multiply(sqrt, MC);
+		assertBigDecimal(number, expected, MC_CHECK_DOUBLE);
+
+		number = new BigDecimal("25").movePointRight(2_000_000).round(MathContext.DECIMAL128);
+		sqrt = BigDecimalMath.sqrt(number, MC).round(MC);
+		expected = sqrt.multiply(sqrt, MC);
+		assertBigDecimal(number, expected, MC_CHECK_DOUBLE);
+
+		number = new BigDecimal("4.896275944644397282595023211373977").movePointLeft(1002).round(MathContext.DECIMAL128);
+		sqrt = BigDecimalMath.sqrt(number, MC).round(MC);
+		expected = sqrt.multiply(sqrt, MC);
+		assertBigDecimal(number, expected, MC_CHECK_DOUBLE);
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
@@ -2032,6 +2085,16 @@ ch.obermuhlner.math.big.BigDecimalMathTest > testLog2PowRandom FAILED
         assertTrue(fullDescription, error.compareTo(acceptableError) <= 0);
         return error.signum() == 0;
     }
+
+	private static boolean assertBigDecimalExact(String description, BigDecimal expected, BigDecimal actual, MathContext mathContext) {
+		MathContext calculationMathContext = new MathContext(mathContext.getPrecision());
+		BigDecimal error = expected.subtract(actual, calculationMathContext).abs();
+		BigDecimal acceptableError = actual.round(mathContext).ulp();
+
+		String fullDescription = description + " expected=" + expected + " actual=" + actual + " precision=" + mathContext.getPrecision() + " error=" + error + " acceptableError=" + acceptableError;
+		assertTrue(fullDescription, error.compareTo(acceptableError) <= 0);
+		return error.signum() == 0;
+	}
 
     private static BigDecimal randomBigDecimal(Random random, MathContext mathContext) {
 		char[] digits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
